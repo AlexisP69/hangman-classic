@@ -4,10 +4,14 @@ import (
 	"bufio"
 	"fmt"
 	"log"
+	"math/rand"
 	"os"
+	"time"
 )
 
-func Hang() {
+var tab []string
+
+func Read() {
 
 	file, err := os.Open("words.txt")
 
@@ -18,13 +22,15 @@ func Hang() {
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
-
 	for scanner.Scan() {
-
-		fmt.Println(scanner.Text())
+		tab = append(tab, scanner.Text())
+		if err := scanner.Err(); err != nil {
+			log.Fatalln(err)
+		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
+	rand.Seed(time.Now().UnixNano())
+	min := 0
+	max := len(tab)
+	i := rand.Intn((max - min))
+	fmt.Println(tab[i])
 }
