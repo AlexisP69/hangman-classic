@@ -5,5 +5,5 @@ import (
 )
 
 func main() {
-	Hangman.Read()
+	Hangman.Pendu()
 }
