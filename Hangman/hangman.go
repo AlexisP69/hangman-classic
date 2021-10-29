@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func Read() {
+func Pendu() {
 
 	var (
 		tab      []string
