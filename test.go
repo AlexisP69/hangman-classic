@@ -23,26 +23,26 @@ type HangManData struct {
 
 var tab []string
 var col []rune
-var tab2 []string
+var hangman []string
 
 func Read() {
 
 	isdommage := true
 
 	file, err := os.Open("words.txt")
-	// file2, erreur := os.Open("hangman.txt")
+	file2, erreur := os.Open("hangman.txt")
 
 	if err != nil { //fichier mot
 		log.Fatal(err)
 	}
 
-	// if erreur != nil { //fichier position (hangman)
-	// 	log.Fatal(erreur)
-	// }
+	if erreur != nil { //fichier position (hangman)
+		log.Fatal(erreur)
+	}
 
 	defer file.Close() //fermer le fichier mot
 
-	// defer file2.Close() //fermer le fichier position (hangman)
+	defer file2.Close() //fermer le fichier position (hangman)
 
 	scanner := bufio.NewScanner(file) //Lis mon fichier words
 	for scanner.Scan() {
@@ -52,13 +52,13 @@ func Read() {
 		}
 	}
 
-	// position := bufio.NewScanner(file2) //Lis mon fichier position (hangman)
-	// for position.Scan() {
-	// 	tab2 = append(tab2, position.Text())
-	// 	if erreur := position.Err(); erreur != nil {
-	// 		log.Fatalln(erreur)
-	// 	}
-	// }
+	position := bufio.NewScanner(file2) //Lis mon fichier position (hangman)
+	for position.Scan() {
+		hangman = append(hangman, position.Text())
+		if erreur := position.Err(); erreur != nil {
+			log.Fatalln(erreur)
+		}
+	}
 
 	rand.Seed(time.Now().UnixNano())
 	min := 0
@@ -96,9 +96,9 @@ func Read() {
 		fmt.Print("Choissisez votre lettre: ")
 
 		if isdommage == true {
-			fmt.Println("DOMMAGE CETTE LETTRE N'EST PAS DANS CE MOTS")
+			fmt.Println("Dommage cette lettre n'est pas dans ce mot")
 			fmt.Print("\n")
-			// fmt.Println(tab2)
+			fmt.Println(hangman)
 			fmt.Println(string(col))
 			fmt.Print("Choissisez votre lettre: ")
 		}
