@@ -13,50 +13,31 @@ func main() {
 	Read()
 }
 
-type HangManData struct {
-	Word             string     // Word composed of '_', ex: H_ll_
-	ToFind           string     // Final word chosen by the program at the beginning. It is the word to find
-	Attempts         int        // Number of attempts left
-	HangmanPositions [10]string // It can be the array where the positions parsed in "hangman.txt" are stored
-	Correct          string
-}
-
-var tab []string
-var col []rune
-var hangman []string
-
 func Read() {
 
-	isdommage := true
+	var (
+		tab      []string
+		col      []rune
+		attempts int
+		essai    int
+	)
+
+	essai = 9
+	isfalse := true
 
 	file, err := os.Open("words.txt")
-	file2, erreur := os.Open("hangman.txt")
 
 	if err != nil { //fichier mot
 		log.Fatal(err)
 	}
 
-	if erreur != nil { //fichier position (hangman)
-		log.Fatal(erreur)
-	}
-
 	defer file.Close() //fermer le fichier mot
-
-	defer file2.Close() //fermer le fichier position (hangman)
 
 	scanner := bufio.NewScanner(file) //Lis mon fichier words
 	for scanner.Scan() {
 		tab = append(tab, scanner.Text())
 		if err := scanner.Err(); err != nil {
 			log.Fatalln(err)
-		}
-	}
-
-	position := bufio.NewScanner(file2) //Lis mon fichier position (hangman)
-	for position.Scan() {
-		hangman = append(hangman, position.Text())
-		if erreur := position.Err(); erreur != nil {
-			log.Fatalln(erreur)
 		}
 	}
 
@@ -68,6 +49,7 @@ func Read() {
 	mot := tab[i] // Mot aléatoire du fichier words
 	fmt.Println(mot)
 	tabmot := []rune(mot) // fmt.Println(tabmot) Affiche les rune des underscore
+
 	for u := 0; u < len(tabmot); u++ {
 		fmt.Printf("_")
 		col = append(col, '_')
@@ -84,27 +66,57 @@ func Read() {
 		input, _ := reader.ReadString('\n')
 		tabrun := []rune(input) //la rune de notre input
 
-		isdommage = true
+		isfalse = true
 
 		for x := 0; x < len(tabmot); x++ {
 			if tabmot[x] == tabrun[0] { // compare l'index du mot a l'index de mon input
 				col[x] = tabmot[x]
-				isdommage = false
+				isfalse = false
 			}
 		}
 		fmt.Println(string(col)) //Affiche le mot avec les underscore modifier
 		fmt.Print("Choissisez votre lettre: ")
 
-		if isdommage == true {
+		if isfalse == true {
 			fmt.Println("Dommage cette lettre n'est pas dans ce mot")
 			fmt.Print("\n")
-			fmt.Println(hangman)
+			fmt.Println("Il vous reste", essai, "essai")
+			essai = essai - 1
+			Draw(attempts)
+			attempts = attempts + 1
 			fmt.Println(string(col))
 			fmt.Print("Choissisez votre lettre: ")
+		}
+		if essai == -1 {
+			fmt.Println("\n")
+			fmt.Println("You're dead")
 		}
 		if mot == string(col) {
 			fmt.Print("\n")
 			fmt.Println("Congratulation You found the word")
 		}
+	}
+}
+
+func Draw(attempts int) {
+	count := 0
+
+	file2, erreur := os.Open("hangman.txt")
+
+	if erreur != nil { //fichier mot
+		log.Fatal(erreur)
+	}
+
+	defer file2.Close() //fermer le fichier mot
+
+	position := bufio.NewScanner(file2) //Lis mon fichier words
+	for position.Scan() {
+		if count >= attempts*8 && count < (attempts*8)+8 {
+			fmt.Println(position.Text())
+		}
+		if erreur := position.Err(); erreur != nil {
+			log.Fatalln(erreur)
+		}
+		count++
 	}
 }
