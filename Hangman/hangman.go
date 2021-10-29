@@ -27,8 +27,7 @@ func Pendu() {
 		log.Fatal(err)
 	}
 
-	defer file.Close() //fermer le fichier mot
-
+	defer file.Close()                //fermer le fichier mot
 	scanner := bufio.NewScanner(file) //Lis mon fichier words
 	for scanner.Scan() {
 		tab = append(tab, scanner.Text())
@@ -45,12 +44,14 @@ func Pendu() {
 	mot := tab[i] // Mot aléatoire du fichier words
 	fmt.Println(mot)
 	tabmot := []rune(mot) // fmt.Println(tabmot) Affiche les rune des underscore
-
 	for u := 0; u < len(tabmot); u++ {
-		fmt.Printf("_")
 		col = append(col, '_')
 	}
-
+	for g := 0; g < (len(mot)/2 - 1); g++ {
+		A := rand.Intn(len(mot))
+		col[A] = tabmot[A]
+	}
+	fmt.Print(string(col))
 	fmt.Print("\n")
 	fmt.Print("Choissisez votre lettre: ")
 
@@ -61,7 +62,6 @@ func Pendu() {
 		}
 		input, _ := reader.ReadString('\n')
 		tabrun := []rune(input) //la rune de notre input
-
 		isfalse = true
 
 		for x := 0; x < len(tabmot); x++ {
@@ -70,8 +70,13 @@ func Pendu() {
 				isfalse = false
 			}
 		}
+		// for j := 0; j < len(tabmot); j++ {
+		// 	if tabmot[j] == tabrun[j] { // compare l'index du mot a l'index de mon input
+		// 		col[j] = tabmot[j]
+		// 		isfalse = false
+		// 	}
+		// }
 		fmt.Println(string(col)) //Affiche le mot avec les underscore modifier
-		fmt.Print("Choissisez votre lettre: ")
 
 		if isfalse == true {
 			fmt.Println("Dommage cette lettre n'est pas dans ce mot")
@@ -86,11 +91,13 @@ func Pendu() {
 		if essai == -1 {
 			fmt.Println("\n")
 			fmt.Println("You're dead")
+			break
 		}
 		if mot == string(col) {
-			fmt.Print("\n")
 			fmt.Println("Congratulation You found the word")
+			break
 		}
+		fmt.Print("Choissisez votre lettre: ")
 	}
 }
 
@@ -103,8 +110,7 @@ func Draw(attempts int) {
 		log.Fatal(erreur)
 	}
 
-	defer file2.Close() //fermer le fichier mot
-
+	defer file2.Close()                 //fermer le fichier mot
 	position := bufio.NewScanner(file2) //Lis mon fichier words
 	for position.Scan() {
 		if count >= attempts*8 && count < (attempts*8)+8 {
