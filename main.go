@@ -1,9 +1,8 @@
 package main
 
-import (
-	"hangman/Hangman"
-)
+import "hangman/Hangman"
 
 func main() {
-	Hangman.Pendu()
+	var game Hangman.Game
+	Hangman.ReadFiles(&game)
 }
