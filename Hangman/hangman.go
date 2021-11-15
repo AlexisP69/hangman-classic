@@ -23,7 +23,7 @@ type Game struct {
 	tabmot     []rune
 	tabrun     []rune
 	err        error
-	Win        bool
+	gagné      bool
 	input      string
 	alreadyuse bool
 }
@@ -96,7 +96,7 @@ func Input(game *Game) {
 	game.tabrun = []rune(game.input)        //tableau de rune de ce que l'on écrit
 	inputRune := game.tabrun[0]
 	game.isfalse = true
-	game.Win = false
+	game.gagné = false
 	game.alreadyuse = false
 	for b := 0; b < len(game.letter); b++ {
 		if inputRune == game.letter[b] {
@@ -119,7 +119,7 @@ func VerifyInput(game *Game) {
 		if game.mot == string(game.tabrun[:len(game.tabrun)-1]) { //condition qui vérifie si le mot correspond à ce que l'on marque moins le \n
 			game.underscore[x] = game.tabmot[x]
 			game.isfalse = false
-			game.Win = true
+			game.gagné = true
 			Win(game)
 		} else if len(game.input) <= 2 {
 			if game.tabmot[x] == game.tabrun[0] { //compare l'index du mot a l'index de mon input
@@ -128,7 +128,7 @@ func VerifyInput(game *Game) {
 			}
 		}
 		if game.mot == string(game.underscore) {
-			game.Win = true
+			game.gagné = true
 			Win(game)
 		}
 	}
@@ -191,7 +191,7 @@ func Loose(game *Game) { //condition pour finir le jeu si perdu
 
 func Win(game *Game) { //condition pour finir le jeu si gagné
 	var reset int
-	if game.Win == true {
+	if game.gagné == true {
 		fmt.Println("Congratulation You found the word")
 		game.win++
 		fmt.Println("Vous avez gagné", game.win, "fois")
