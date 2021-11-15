@@ -9,38 +9,35 @@ import (
 	"time"
 )
 
-type Game struct {
-	tab        []string
-	underscore []rune
-	mot        string
-	attempts   int
-	essai      int
-	letter     []rune
-	word       []string
-	win        int
-	loose      int
-	isfalse    bool
-	tabmot     []rune
-	tabrun     []rune
-	err        error
-	gagné      bool
+type Game struct { //la structure qui nous servira tout au long du code
+	tab        []string //Prends tout les mots du fichier words.txt
+	word       []string // utilisé pour entrée un mot complet lors d'une partie
 	input      string
+	mot        string
+	underscore []rune //utilisé pour modifié les bonnes lettre avec les underscores
+	letter     []rune
+	tabmot     []rune // découpe notre mot en rune pour comparer avec la rune de input
+	tabrun     []rune // rune de input
+	attempts   int    // nombre de tours utilisé en compteur
+	essai      int    // nombre d'essai
+	win        int    // utilisé en compteur pour compté les parties gangés
+	loose      int    // utilisé en compteur pour compté les parties perdu
+	isfalse    bool   // booléen utilisé pour passer des condition des bonne lettre au mauvaise entréé
+	gagné      bool
 	alreadyuse bool
+	err        error
 }
 
-func Save(game *Game) {
-}
-
-func ReadFiles(game *Game) {
-	file, err := os.Open("words.txt")
+func ReadFiles(game *Game) { //fonction qui nous permet de lire le fichier de mot
+	file, err := os.Open("words.txt") // ouvre le document
 
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	defer file.Close()
+	defer file.Close() // ferme le document
 
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(file) //recupere le mot
 
 	for scanner.Scan() {
 		game.tab = append(game.tab, scanner.Text())
@@ -53,7 +50,7 @@ func ReadFiles(game *Game) {
 	RandomString(game)
 }
 
-func RandomString(game *Game) {
+func RandomString(game *Game) { //selectionner un mot aleatoirement dans word .txt
 	rand.Seed(time.Now().UnixNano())
 	min := 0
 	max := len(game.tab)
@@ -63,7 +60,7 @@ func RandomString(game *Game) {
 	Underscore(game)
 }
 
-func Underscore(game *Game) {
+func Underscore(game *Game) { //remplacer le mot par des underscores
 	for u := 0; u < len(game.tabmot); u++ {
 		game.underscore = append(game.underscore, '_')
 	}
@@ -78,15 +75,14 @@ func PrintRandomLetter(game *Game) {
 	Start(game)
 }
 
-func Start(game *Game) {
+func Start(game *Game) { // message de debut de partie
 	fmt.Println("Bonne chance vous avez 10 essais")
 	fmt.Println(string(game.underscore))
-	// fmt.Print(game.mot)
 	fmt.Print("Choisissez votre lettre: ")
 	Input(game)
 }
 
-func Input(game *Game) {
+func Input(game *Game) { //recupere l'entree de l'utilisateur
 	reader := bufio.NewReader(os.Stdin)
 	if game.err != nil {
 		println(game.err)
@@ -94,28 +90,27 @@ func Input(game *Game) {
 
 	game.input, _ = reader.ReadString('\n') //Lit ce que l'on écrit
 	game.tabrun = []rune(game.input)        //tableau de rune de ce que l'on écrit
-	inputRune := game.tabrun[0]
 	game.isfalse = true
 	game.gagné = false
 	game.alreadyuse = false
-	for b := 0; b < len(game.letter); b++ {
+	VerifyInput(game)
+}
+
+func VerifyInput(game *Game) { //verifie si l'input est la meme que le mot
+	inputRune := game.tabrun[0]
+	for b := 0; b < len(game.letter); b++ { //verifie si l'imput n'as pas deja ete utilise dans la partie
 		if inputRune == game.letter[b] {
 			fmt.Println("Cette lettre est déjà entrée tu fais quoi là !")
 			game.alreadyuse = true
 		}
 	}
-	for x := 0; x < len(game.word); x++ {
+	for x := 0; x < len(game.word); x++ { //verifie si l'imput n'as pas deja ete utilise dans la partie
 		if game.input == game.word[x] {
 			fmt.Println("Ce mot est déjà entrée tu fais quoi là !")
 			game.alreadyuse = true
 		}
 	}
-	VerifyInput(game)
-}
-
-func VerifyInput(game *Game) {
 	for x := 0; x < len(game.tabmot); x++ {
-		// fmt.Println(mot, tabrun[:len(tabrun)-1])
 		if game.mot == string(game.tabrun[:len(game.tabrun)-1]) { //condition qui vérifie si le mot correspond à ce que l'on marque moins le \n
 			game.underscore[x] = game.tabmot[x]
 			game.isfalse = false
@@ -138,7 +133,7 @@ func VerifyInput(game *Game) {
 	Win(game)
 }
 
-func OneLetter(game *Game) {
+func OneLetter(game *Game) { //affiche les lettres utilise et retire le nombre d'essai
 	var reset string
 	fmt.Println("Dommage cette lettre n'est pas dans ce mot", "\n")
 	game.essai = game.essai - 1
@@ -153,14 +148,14 @@ func OneLetter(game *Game) {
 	Loose(game)
 }
 
-func OneWord(game *Game) {
+func OneWord(game *Game) { //affiche les mots utilise et retire le nombre d'essai
 	var reset string
 	fmt.Println("Dommage ce mot ne correspond pas", "\n")
 	game.essai = game.essai - 2
 	fmt.Println("Il vous reste", game.essai, "essai(s)")
 	game.attempts = game.attempts + 2
 	Draw(game.attempts - 1)
-	game.word = append(game.word, game.input) //afficher les mauvaises lettres
+	game.word = append(game.word, game.input) //afficher les mauvais mots
 	fmt.Println(string(game.underscore))
 	fmt.Println("les mauvais mots entrée sont :", game.word)
 	fmt.Println("les mauvaises lettres entrée sont :", string(game.letter))
@@ -203,7 +198,7 @@ func Win(game *Game) { //condition pour finir le jeu si gagné
 	}
 }
 
-func False(game *Game) {
+func False(game *Game) { //condition d'erreur
 	for game.isfalse == true && game.alreadyuse == false {
 		if len(game.input) <= 2 {
 			OneLetter(game)
@@ -217,19 +212,16 @@ func False(game *Game) {
 	}
 }
 
-func Draw(attempts int) {
+func Draw(attempts int) { //affichage du pendu
 	count := 0
 
 	file2, erreur := os.Open("hangman.txt") //ouvre le fichier des positions du pendu
-
 	if erreur != nil {
 		log.Fatal(erreur)
 	}
 
-	defer file2.Close() //fermer le fichier mot
-
-	position := bufio.NewScanner(file2) //Lis mon fichier words
-
+	defer file2.Close()                 //fermer le fichier mot
+	position := bufio.NewScanner(file2) //Lit mon fichier words
 	for position.Scan() {
 		if count >= attempts*8 && count < (attempts*8)+8 {
 			fmt.Println(position.Text())
@@ -242,7 +234,7 @@ func Draw(attempts int) {
 	}
 }
 
-func Restart(game *Game) {
+func Restart(game *Game) { // gère la reprise de la partie
 	var resetrune []rune
 	var resetstring []string
 	reader := bufio.NewReader(os.Stdin)
@@ -257,7 +249,7 @@ func Restart(game *Game) {
 				game.tabmot = resetrune     //clear pour le choix d'un nouveau mot
 				game.underscore = resetrune //clear pour le nouveau mot
 				game.letter = resetrune     //clear pour les mauvaises lettres
-				game.word = resetstring
+				game.word = resetstring     //clear pour les mauvais mots
 				ReadFiles(game)
 				os.Exit(0)
 			case "non\n":
