@@ -2,7 +2,6 @@ package Hangman
 
 import (
 	"bufio"
-	"encoding/json"
 	"fmt"
 	"log"
 	"math/rand"
@@ -96,15 +95,6 @@ func Input(game *Game) {
 	game.tabrun = []rune(game.input)        //tableau de rune de ce que l'on écrit
 	game.isfalse = true
 	game.Win = false
-	if game.input == "/stop\n" {
-		f, _ := os.Create("save.txt")
-		file, err := json.Marshal(game)
-		if err != nil {
-			fmt.Println("error:", err)
-		}
-		f.WriteString(string(file))
-		os.Exit(0)
-	}
 	VerifyInput(game)
 }
 
@@ -116,24 +106,26 @@ func VerifyInput(game *Game) {
 			game.isfalse = false
 			game.Win = true
 			Win(game)
-		} else if game.tabmot[x] == game.tabrun[0] { //compare l'index du mot a l'index de mon input
-			game.underscore[x] = game.tabmot[x]
-			game.isfalse = false
-			if game.mot == string(game.underscore) {
-				game.Win = true
+		} else if len(game.input) <= 2 {
+			if game.tabmot[x] == game.tabrun[0] { //compare l'index du mot a l'index de mon input
+				game.underscore[x] = game.tabmot[x]
+				game.isfalse = false
 			}
+		}
+		if game.mot == string(game.underscore) {
+			game.Win = true
 			Win(game)
 		}
 	}
 	if game.isfalse == true {
 		False(game)
 	}
+	Win(game)
 }
 
 func OneLetter(game *Game) {
 	var reset string
-	fmt.Println("Dommage cette lettre n'est pas dans ce mot")
-	fmt.Print("\n")
+	fmt.Println("Dommage cette lettre n'est pas dans ce mot", "\n")
 	game.essai = game.essai - 1
 	fmt.Println("Il vous reste", game.essai, "essai(s)")
 	Draw(game.attempts)
@@ -148,13 +140,12 @@ func OneLetter(game *Game) {
 
 func OneWord(game *Game) {
 	var reset string
-	fmt.Println("Dommage ce mot ne correspond pas")
-	fmt.Print("\n")
+	fmt.Println("Dommage ce mot ne correspond pas", "\n")
 	game.essai = game.essai - 2
 	fmt.Println("Il vous reste", game.essai, "essai(s)")
 	game.attempts = game.attempts + 2
 	Draw(game.attempts - 1)
-	game.word = append(game.word, string(game.tabrun), " ") //afficher les mauvaises lettres
+	game.word = append(game.word, game.input) //afficher les mauvaises lettres
 	fmt.Println(string(game.underscore))
 	fmt.Println("les mauvais mots entrée sont :", game.word)
 	fmt.Println("les mauvaises lettres entrée sont :", string(game.letter))
