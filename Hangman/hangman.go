@@ -12,30 +12,21 @@ import (
 type Game struct {
 	tab        []string
 	underscore []rune
+	mot        string
 	attempts   int
 	essai      int
 	p          []rune
 	win        int
 	loose      int
 	isfalse    bool
+	tabmot     []rune
+	tabrun     []rune
+	err        error
+	Win        bool
+	input      string
 }
 
-func Pendu() {
-	var game Game
-
-	// var (
-	// 	tab        []string
-	// 	underscore []rune
-	// 	attempts   int
-	// 	essai      int
-	// 	p          []rune
-	// 	win        int
-	// 	loose      int
-	// )
-
-	game.essai = 9
-	game.isfalse = true
-
+func ReadFiles(game *Game) {
 	file, err := os.Open("words.txt")
 
 	if err != nil {
@@ -52,89 +43,159 @@ func Pendu() {
 			log.Fatalln(err)
 		}
 	}
+	game.essai = 9
+	game.isfalse = true
+	RandomString(game)
+}
 
+func RandomString(game *Game) {
 	rand.Seed(time.Now().UnixNano())
 	min := 0
 	max := len(game.tab)
 	i := rand.Intn((max - min))
+	game.mot = game.tab[i]
+	game.tabmot = []rune(game.mot)
+	Underscore(game)
+}
 
-	mot := game.tab[i] // Mot aléatoire du fichier mots dans un tableau
-	fmt.Println(mot)
-	tabmot := []rune(mot)
-
-	for u := 0; u < len(tabmot); u++ {
+func Underscore(game *Game) {
+	for u := 0; u < len(game.tabmot); u++ {
 		game.underscore = append(game.underscore, '_')
 	}
+	PrintRandomLetter(game)
+}
 
-	for g := 0; g < (len(mot)/2 - 1); g++ { //affichage la moitié -1 des lettres du mot
-		A := rand.Intn(len(mot)) //choisi aléatoirement les lettres à afficher du mot
-		game.underscore[A] = tabmot[A]
+func PrintRandomLetter(game *Game) {
+	for g := 0; g < (len(game.mot)/2 - 1); g++ { //affichage la moitié -1 des lettres du mot
+		A := rand.Intn(len(game.mot)) //choisi aléatoirement les lettres à afficher du mot
+		game.underscore[A] = game.tabmot[A]
 	}
+	Start(game)
+}
+
+func Start(game *Game) {
 	fmt.Println("Bonne chance vous avez 10 essais")
 	fmt.Println(string(game.underscore))
+	fmt.Print(game.mot)
 	fmt.Print("Choisissez votre lettre: ")
+	Input(game)
+}
 
-	for {
-		reader := bufio.NewReader(os.Stdin)
-		if err != nil {
-			println(err)
-		}
-
-		input, _ := reader.ReadString('\n') //Lit ce que l'on écrit
-		tabrun := []rune(input)             //tableau de rune de ce que l'on écrit
-		game.isfalse = true
-
-		for x := 0; x < len(tabmot); x++ {
-			// fmt.Println(mot, tabrun[:len(tabrun)-1])
-			if mot == string(tabrun[:len(tabrun)-1]) { //condition qui vérifie si le mot correspond à ce que l'on marque moins le \n
-				game.underscore[x] = tabmot[x]
-				game.isfalse = false
-			} else if tabmot[x] == tabrun[0] { //compare l'index du mot a l'index de mon input
-				game.underscore[x] = tabmot[x]
-				game.isfalse = false
-			}
-		}
-
-		if game.essai <= 0 { //condition pour finir le jeu si perdu
-			Draw(game.attempts)
-			fmt.Println("You're dead")
-			game.loose++
-			fmt.Println("Vous avez perdu", game.loose, "fois")
-			Restart()
-			break
-		}
-
-		fmt.Println(string(game.underscore)) //Affiche le mot avec les underscores modifié
-		if mot == string(game.underscore) {  //condition pour finir le jeu si gagné
-			fmt.Println("Congratulation You found the word")
-			game.win++
-			fmt.Println("Vous avez gagné", game.win, "fois")
-			Restart()
-			break
-		}
-
-		if game.isfalse == true { //si le mot ou l'input entrée est fausse il rentre dans la condition
-			fmt.Println("Dommage cette lettre n'est pas dans ce mot")
-			fmt.Print("\n")
-			fmt.Println("Il vous reste", game.essai, "essai(s)")
-			game.essai--
-			Draw(game.attempts)
-			game.attempts++
-			game.p = append(game.p, tabrun[0], 32)
-			fmt.Println(string(game.underscore))
-			fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
-			// } else if isfalse2 == true { //si le mot ou l'input entrée est fausse il rentre dans la condition
-			// 	fmt.Println("Dommage cette lettre n'est pas dans ce mot")
-			// 	fmt.Print("\n")
-			// 	fmt.Println("Il vous reste", essai, "essai")
-			// 	essai = essai - 2
-			// 	Draw(attempts)
-			// 	attempts = attempts + 2
-			// 	fmt.Println(string(underscore))
-			// }
-		}
-		fmt.Print("Choisissez votre lettre: ")
+func Input(game *Game) {
+	reader := bufio.NewReader(os.Stdin)
+	if game.err != nil {
+		println(game.err)
 	}
+
+	game.input, _ = reader.ReadString('\n') //Lit ce que l'on écrit
+	game.tabrun = []rune(game.input)        //tableau de rune de ce que l'on écrit
+	game.isfalse = true
+	game.Win = false
+	VerifyInput(game)
+}
+
+func VerifyInput(game *Game) {
+	for x := 0; x < len(game.tabmot); x++ {
+		// fmt.Println(mot, tabrun[:len(tabrun)-1])
+		if game.mot == string(game.tabrun[:len(game.tabrun)-1]) { //condition qui vérifie si le mot correspond à ce que l'on marque moins le \n
+			game.underscore[x] = game.tabmot[x]
+			game.isfalse = false
+			game.Win = true
+			Win(game)
+		} else if game.tabmot[x] == game.tabrun[0] { //compare l'index du mot a l'index de mon input
+			game.underscore[x] = game.tabmot[x]
+			game.isfalse = false
+			if game.mot == string(game.underscore) {
+				game.Win = true
+			}
+			Win(game)
+		}
+	}
+	if game.isfalse == true {
+		False(game)
+	}
+}
+
+func OneLetter(game *Game) {
+	var reset string
+	fmt.Println("Dommage cette lettre n'est pas dans ce mot")
+	fmt.Print("\n")
+	fmt.Println("Il vous reste", game.essai, "essai(s)")
+	game.essai--
+	Draw(game.attempts)
+	game.attempts++
+	game.p = append(game.p, game.tabrun[0], 32) //afficher les mauvaises lettres
+	fmt.Println(string(game.underscore))
+	fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
+	game.input = reset
+	Input(game)
+}
+
+func OneWord(game *Game) {
+	var reset string
+	fmt.Println("Dommage ce mot ne correspond pas")
+	fmt.Print("\n")
+	fmt.Println("Il vous reste", game.essai, "essai(s)")
+	game.essai = game.essai - 2
+	Draw(game.attempts)
+	game.attempts = game.attempts + 2
+	game.p = append(game.p, game.tabrun[0], 32) //afficher les mauvaises lettres
+	fmt.Println(string(game.underscore))
+	fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
+	game.input = reset
+	Input(game)
+}
+
+func LetterByLetter(game *Game) {
+	fmt.Println(string(game.underscore))
+	fmt.Print("Choisissez votre lettre: ")
+	Input(game)
+}
+
+func Loose(game *Game) { //condition pour finir le jeu si perdu
+	Draw(game.attempts)
+	fmt.Println("You're dead")
+	game.loose++
+	fmt.Println("Vous avez perdu", game.loose, "fois")
+	Restart(game)
+}
+
+func Win(game *Game) { //condition pour finir le jeu si gagné
+	if game.Win == true {
+		fmt.Println("Congratulation You found the word")
+		game.win++
+		fmt.Println("Vous avez gagné", game.win, "fois")
+		Restart(game)
+	} else {
+		LetterByLetter(game)
+	}
+}
+
+func False(game *Game) {
+	for game.isfalse == true {
+		if len(game.input) <= 1 {
+			OneLetter(game)
+		} else {
+			OneWord(game)
+		}
+	}
+
+	// if game.isfalse == true { //si le mot ou l'input entrée est fausse il rentre dans la condition
+	// 	fmt.Println("Dommage cette lettre n'est pas dans ce mot")
+	// 	fmt.Print("\n")
+	// 	fmt.Println("Il vous reste", game.essai, "essai(s)")
+	// 	game.essai--
+	// 	Draw(game.attempts)
+	// 	game.attempts++
+	// 	game.p = append(game.p, game.tabrun[0], 32) //afficher les mauvaises lettres
+	// 	fmt.Println(string(game.underscore))
+	// 	fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
+	// }
+	if game.essai <= 0 {
+		Loose(game)
+	}
+	fmt.Print("Choisissez votre lettre: ")
+	Input(game)
 }
 
 func Draw(attempts int) {
@@ -162,19 +223,20 @@ func Draw(attempts int) {
 	}
 }
 
-func Restart() {
+func Restart(game *Game) {
+	var reset []rune
 	reader := bufio.NewReader(os.Stdin)
-
 	for {
 		print("Voulez-vous rejouer ? (oui/non) ")
 		restart, _ := reader.ReadString('\n')
-
 		if restart != "oui\n" && restart != "non\n" {
 			println("Erreur veuillez utilisé oui ou non")
 		} else {
 			switch restart {
 			case "oui\n":
-				Pendu()
+				game.tabmot = reset     //clear pour la nouvelle partie
+				game.underscore = reset //clear pour la nouvelle partie
+				ReadFiles(game)
 				os.Exit(0)
 			case "non\n":
 				os.Exit(1)
@@ -182,14 +244,3 @@ func Restart() {
 		}
 	}
 }
-
-// else {
-// 	fmt.Println("Il vous reste", game.essai, "essai")
-// 	game.essai = game.essai - 2
-// 	Draw(game.attempts)
-// 	game.attempts = game.attempts + 2
-// 	game.p = append(game.p, tabrun[0], 32)
-// 	fmt.Println(string(game.underscore))
-// 	fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
-// 	game.isfalse = false
-// }
