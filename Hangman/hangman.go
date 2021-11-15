@@ -25,6 +25,7 @@ type Game struct {
 	err        error
 	Win        bool
 	input      string
+	alreadyuse bool
 }
 
 func Save(game *Game) {
@@ -80,7 +81,7 @@ func PrintRandomLetter(game *Game) {
 func Start(game *Game) {
 	fmt.Println("Bonne chance vous avez 10 essais")
 	fmt.Println(string(game.underscore))
-	fmt.Print(game.mot)
+	// fmt.Print(game.mot)
 	fmt.Print("Choisissez votre lettre: ")
 	Input(game)
 }
@@ -93,8 +94,22 @@ func Input(game *Game) {
 
 	game.input, _ = reader.ReadString('\n') //Lit ce que l'on écrit
 	game.tabrun = []rune(game.input)        //tableau de rune de ce que l'on écrit
+	inputRune := game.tabrun[0]
 	game.isfalse = true
 	game.Win = false
+	game.alreadyuse = false
+	for b := 0; b < len(game.letter); b++ {
+		if inputRune == game.letter[b] {
+			fmt.Println("Cette lettre est déjà entrée tu fais quoi là !")
+			game.alreadyuse = true
+		}
+	}
+	for x := 0; x < len(game.word); x++ {
+		if game.input == game.word[x] {
+			fmt.Println("Ce mot est déjà entrée tu fais quoi là !")
+			game.alreadyuse = true
+		}
+	}
 	VerifyInput(game)
 }
 
@@ -166,6 +181,7 @@ func Loose(game *Game) { //condition pour finir le jeu si perdu
 		fmt.Println("You're dead")
 		game.loose++
 		fmt.Println("Vous avez perdu", game.loose, "fois")
+		fmt.Println("vous avez gagné", game.win, "fois")
 		game.attempts = reset
 		Restart(game)
 	}
@@ -179,6 +195,7 @@ func Win(game *Game) { //condition pour finir le jeu si gagné
 		fmt.Println("Congratulation You found the word")
 		game.win++
 		fmt.Println("Vous avez gagné", game.win, "fois")
+		fmt.Println("Vous avez perdu", game.loose, "fois")
 		game.attempts = reset
 		Restart(game)
 	} else {
@@ -187,30 +204,17 @@ func Win(game *Game) { //condition pour finir le jeu si gagné
 }
 
 func False(game *Game) {
-	for game.isfalse == true {
+	for game.isfalse == true && game.alreadyuse == false {
 		if len(game.input) <= 2 {
 			OneLetter(game)
 		} else {
 			OneWord(game)
 		}
+		if !game.alreadyuse {
+			game.letter = append(game.letter, game.tabrun[0], 32)
+			game.word = append(game.word, string(game.input))
+		}
 	}
-
-	// if game.isfalse == true { //si le mot ou l'input entrée est fausse il rentre dans la condition
-	// 	fmt.Println("Dommage cette lettre n'est pas dans ce mot")
-	// 	fmt.Print("\n")
-	// 	fmt.Println("Il vous reste", game.essai, "essai(s)")
-	// 	game.essai--
-	// 	Draw(game.attempts)
-	// 	game.attempts++
-	// 	game.p = append(game.p, game.tabrun[0], 32) //afficher les mauvaises lettres
-	// 	fmt.Println(string(game.underscore))
-	// 	fmt.Println("les mauvaises lettres entrée sont :", string(game.p))
-	// }
-	// if game.essai <= 0 {
-	// 	Loose(game)
-	// }
-	// fmt.Print("Choisissez votre lettre: ")
-	// Input(game)
 }
 
 func Draw(attempts int) {
@@ -239,7 +243,8 @@ func Draw(attempts int) {
 }
 
 func Restart(game *Game) {
-	var reset []rune
+	var resetrune []rune
+	var resetstring []string
 	reader := bufio.NewReader(os.Stdin)
 	for {
 		print("Voulez-vous rejouer ? (oui/non) ")
@@ -249,9 +254,10 @@ func Restart(game *Game) {
 		} else {
 			switch restart {
 			case "oui\n":
-				game.tabmot = reset     //clear pour le choix d'un nouveau mot
-				game.underscore = reset //clear pour le nouveau mot
-				game.letter = reset     //clear pour les mauvaises lettres
+				game.tabmot = resetrune     //clear pour le choix d'un nouveau mot
+				game.underscore = resetrune //clear pour le nouveau mot
+				game.letter = resetrune     //clear pour les mauvaises lettres
+				game.word = resetstring
 				ReadFiles(game)
 				os.Exit(0)
 			case "non\n":
